@@ -19,9 +19,9 @@ jobs:
     
      - name: Set lower case Github repository name
         runs: |
-           echo "GH_REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+          echo "GH_REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
         env:
-        GITHUB_REPOSITORY: ${{ github.repository }}
+         GITHUB_REPOSITORY: ${{ github.repository }}
      
      - name: Checkout code
        uses: actions/checkout@v3
