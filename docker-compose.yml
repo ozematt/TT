@@ -1,0 +1,11 @@
+services:
+  timetracker:
+    image: node:21
+    container_name: timetracker
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    user: "${USER_ID}:${GROUP_ID}"
+    tty: true
+    ports:
+      - "3000:3000"
