@@ -8,7 +8,9 @@ on:
     branches: [ "main", "develop" ]
     
 permissions:
+ contents: read
  package: write
+ actions: read
 
 jobs:
   build_docker:
@@ -18,7 +20,7 @@ jobs:
     steps:
     
      - name: Set lower case Github repository name
-        runs: |
+        runs: | 
           echo "GH_REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
         env:
          GITHUB_REPOSITORY: ${{ github.repository }}
@@ -43,7 +45,7 @@ jobs:
           # Covering to lower case and replacing "/" with "-"
           BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')
           # Creating new environment variable
-          echo "TAG_NAME=$BRUNCH_NAME_LOWER" >> $GITHUB_ENV
+          echo "TAG_NAME=$BRANCH_NAME_LOWER" >> $GITHUB_ENV
        env:
         GITHUB_REF: ${{ git.ref_name }}
      - name: Build Docker image
