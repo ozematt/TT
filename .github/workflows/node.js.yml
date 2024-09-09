@@ -38,21 +38,21 @@ jobs:
       
      - name: Set proper tag name for Docker image
        run: |
-       # Extracting the substring after "refs/heads/"
-                 BRANCH_NAME="${GITHUB_REF#refs/heads/}"
-      # Covering to lower case and replacing "/" with "-"
-        BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')
-      # Creating new environment variable
-         echo "TAG_NAME=$BRUNCH_NAME_LOWER" >> $GITHUB_ENV
-      env:
-       GITHUB_REF: ${{ git.ref_name }}
-    - name: Build Docker image
-      uses: docker/build-push-action@v3
-      with:
-      context: .
-      file: ./Dockerfile
-      push: true
-      tags: ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}
+          # Extracting the substring after "refs/heads/"
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          # Covering to lower case and replacing "/" with "-"
+          BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')
+          # Creating new environment variable
+          echo "TAG_NAME=$BRUNCH_NAME_LOWER" >> $GITHUB_ENV
+       env:
+        GITHUB_REF: ${{ git.ref_name }}
+     - name: Build Docker image
+       uses: docker/build-push-action@v3
+       with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}
 
     # strategy:
     #   matrix:
