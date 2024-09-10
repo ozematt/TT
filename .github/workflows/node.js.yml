@@ -87,6 +87,7 @@ jobs:
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
       # - name: Run Trivy vulnerability scanner
       #   uses: aquasecurity/trivy-action@0.20.0
       #   with:
