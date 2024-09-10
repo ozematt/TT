@@ -75,7 +75,7 @@ jobs:
         env:
           GITHUB_REF: ${{ github.ref_name }}
 
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy scanner
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: "docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
@@ -87,3 +87,12 @@ jobs:
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Run Trivy vulnerability scanner
+      #   uses: aquasecurity/trivy-action@0.20.0
+      #   with:
+      #     image-ref: "docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
+      #     format: "sarif"
+      #     output: "trivy-results.sarif"
+      #   env:
+      #     TRIVY_USERNAME: ${{ github.actor }}
+      #     TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
