@@ -1,4 +1,4 @@
-name: Docker build
+name: Docker build images
 
 on:
   pull_request:
@@ -52,18 +52,38 @@ jobs:
           push: true
           tags: ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}
 
-    # strategy:
-    #   matrix:
-    #     node-version: [18.x, 20.x, 22.x]
-    #     # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+  secure_scan:
+    runs-on: ubuntu-latest
 
-    # steps:
-    # - uses: actions/checkout@v4
-    # - name: Use Node.js ${{ matrix.node-version }}
-    #   uses: actions/setup-node@v4
-    #   with:
-    #     node-version: ${{ matrix.node-version }}
-    #     cache: 'npm'
-    # - run: npm ci
-    # - run: npm run build --if-present
-    # - run: npm test
+    needs: build_docker
+
+    steps:
+      - name: Set lower case Github repository name
+        run: |
+          echo "GH_REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Set proper tag name for Docker image
+        run: |
+          # Extracting the substring after "refs/heads/"
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          # Covering to lower case and replacing "/" with "-"
+          BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')
+          # Creating new environment variable
+          echo "TAG_NAME=$BRANCH_NAME_LOWER" >> $GITHUB_ENV
+        env:
+          GITHUB_REF: ${{ github.ref_name }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: "docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+        env:
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
