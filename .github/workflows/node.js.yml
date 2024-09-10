@@ -107,6 +107,7 @@ jobs:
       #     TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
       # - name: Run Trivy vulnerability scanner
+
       #   uses: aquasecurity/trivy-action@0.20.0
       #   with:
       #     image-ref: "docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
