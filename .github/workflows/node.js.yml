@@ -83,12 +83,12 @@ jobs:
 
       - name: Build an image from Dockerfile
         run: |
-          docker build -t docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }} .
+          docker build -t ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }} .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image-ref: "docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
+          image-ref: "ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
           format: "table"
           exit-code: "1"
           ignore-unfixed: true
@@ -98,7 +98,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.20.0
         with:
-          image-ref: "docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
+          image-ref: "ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
           format: "sarif"
           output: "trivy-results.sarif"
 
