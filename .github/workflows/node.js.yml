@@ -44,6 +44,7 @@ jobs:
           echo "TAG_NAME=$BRANCH_NAME_LOWER" >> $GITHUB_ENV
         env:
           GITHUB_REF: ${{ github.ref_name }}
+
       - name: Build Docker image
         uses: docker/build-push-action@v3
         with:
@@ -75,7 +76,14 @@ jobs:
         env:
           GITHUB_REF: ${{ github.ref_name }}
 
-      - name: Run Trivy scanner
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build an image from Dockerfile
+        run: |
+          docker build -t docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }} .
+
+      - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: "docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
@@ -84,9 +92,20 @@ jobs:
           ignore-unfixed: true
           vuln-type: "os,library"
           severity: "CRITICAL,HIGH"
-        env:
-          TRIVY_USERNAME: ${{ github.actor }}
-          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Run Trivy scanner
+      #   uses: aquasecurity/trivy-action@master
+      #   with:
+      #     image-ref: "docker.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
+      #     format: "table"
+      #     exit-code: "1"
+      #     ignore-unfixed: true
+      #     vuln-type: "os,library"
+      #     severity: "CRITICAL,HIGH"
+      #   env:
+      #     TRIVY_USERNAME: ${{ github.actor }}
+      #     TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
       # - name: Run Trivy vulnerability scanner
       #   uses: aquasecurity/trivy-action@0.20.0
       #   with:
