@@ -5,6 +5,7 @@ on:
     branches: ["main", "develop"]
 
 permissions:
+  packages: write
   actions: write
   checks: write
   contents: read
