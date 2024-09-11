@@ -110,6 +110,9 @@ jobs:
     needs: secure_scan
     timeout-minutes: 60
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -117,8 +120,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "20"
-      - name: Set correct working directory
-        run: cd ./app
       - name: Install dependencies
         run: npm install
       - name: Install Playwright browsers
