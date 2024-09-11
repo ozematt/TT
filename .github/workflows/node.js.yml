@@ -125,7 +125,7 @@ jobs:
         run: docker build -t tt-test .
 
       - name: Docker run
-        run: docker run -p 81:3000 --name tt-demo tt-test
+        run: docker run -d -p 81:3000 --name tt-demo tt-test
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
@@ -134,3 +134,9 @@ jobs:
       - name: Run Playwright tests
         run: npx playwright test
         working-directory: ./app
+
+      - name: Stop Docker container
+        run: docker stop tt-demo
+
+      - name: Remove Docker container
+        run: docker rm tt-demo
