@@ -20,7 +20,6 @@ test.describe("Add new task flow", () => {
       "next-task-test-e2e ::  task-title-e2e ( 0h 0min )"
     );
     await expect(task).toBeVisible();
-
     await page.getByTitle("Start").nth(1).click();
     await page.getByTitle("Close task").nth(1).click();
     await page.getByTitle("Delete task").nth(2).click();
