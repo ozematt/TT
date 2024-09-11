@@ -15,6 +15,7 @@ COPY --from=builder /app/package.json ./package.json
 RUN npm install next
  
 RUN adduser -D nextjs
+
 USER nextjs
 
 CMD ["npm", "start"]
