@@ -1,15 +1,15 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Docker build
+name: Docker build images
 
 on:
   pull_request:
     branches: ["main", "develop"]
 
 permissions:
-  contents: read
   packages: write
+  actions: write
+  checks: write
+  contents: read
+  security-events: write
 
 jobs:
   build_docker:
@@ -47,6 +47,7 @@ jobs:
           echo "TAG_NAME=$BRANCH_NAME_LOWER" >> $GITHUB_ENV
         env:
           GITHUB_REF: ${{ github.ref_name }}
+
       - name: Build Docker image
         uses: docker/build-push-action@v3
         with:
@@ -55,18 +56,87 @@ jobs:
           push: true
           tags: ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}
 
-    # strategy:
-    #   matrix:
-    #     node-version: [18.x, 20.x, 22.x]
-    #     # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+  secure_scan:
+    runs-on: ubuntu-latest
 
-    # steps:
-    # - uses: actions/checkout@v4
-    # - name: Use Node.js ${{ matrix.node-version }}
-    #   uses: actions/setup-node@v4
-    #   with:
-    #     node-version: ${{ matrix.node-version }}
-    #     cache: 'npm'
-    # - run: npm ci
-    # - run: npm run build --if-present
-    # - run: npm test
+    needs: build_docker
+
+    steps:
+      - name: Set lower case Github repository name
+        run: |
+          echo "GH_REPO_LC=${GITHUB_REPOSITORY,,}" >> ${GITHUB_ENV}
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Set proper tag name for Docker image
+        run: |
+          # Extracting the substring after "refs/heads/"
+          BRANCH_NAME="${GITHUB_REF#refs/heads/}"
+          # Covering to lower case and replacing "/" with "-"
+          BRANCH_NAME_LOWER=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's|/|-|g')
+          # Creating new environment variable
+          echo "TAG_NAME=$BRANCH_NAME_LOWER" >> $GITHUB_ENV
+        env:
+          GITHUB_REF: ${{ github.ref_name }}
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build an image from Dockerfile
+        run: |
+          docker build -t ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }} .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: "ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
+          format: "table"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+  # - name: Run Trivy vulnerability scanner
+  #   uses: aquasecurity/trivy-action@0.20.0
+  #   with:
+  #     image-ref: "ghcr.io/${{ env.GH_REPO_LC }}:${{ env.TAG_NAME }}"
+  #     format: "sarif"
+  #     output: "trivy-results.sarif"
+  # - name: Upload Trivy scan results to GitHub Security tab
+  #   uses: github/codeql-action/upload-sarif@v3
+  #   with:
+  #     sarif_file: "trivy-results.sarif"
+  e2e:
+    needs: secure_scan
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "21"
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./app
+
+      - name: Docker image build
+        run: docker build -t tt-test .
+
+      - name: Docker run
+        run: docker run -d -p 81:3000 --name tt-demo tt-test
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+        working-directory: ./app
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        working-directory: ./app
+
+      - name: Stop Docker container
+        run: docker stop tt-demo
+
+      - name: Remove Docker container
+        run: docker rm tt-demo
